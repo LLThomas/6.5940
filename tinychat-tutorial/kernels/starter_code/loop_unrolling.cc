@@ -88,8 +88,29 @@ void MatmulOperator::mat_mul_loop_unrolling(struct matmul_params *params) {
                     intermediate_sum3_2nd = 0;
                 for (int qj = 0; qj < 32; qj++) {
                     // TODO: decode a packed byte into two int8 in the range of (-8, 7)
+                    uint8_t w0_packed = w0_int4[qj];
+                    uint8_t w1_packed = w1_int4[qj];
+                    uint8_t w2_packed = w2_int4[qj];
+                    uint8_t w3_packed = w3_int4[qj];
+
+                    int8_t w0_low = (w0_packed & 0x0F) - 8;
+                    int8_t w0_high = (w0_packed >> 4) - 8;
+                    int8_t w1_low = (w1_packed & 0x0F) - 8;
+                    int8_t w1_high = (w1_packed >> 4) - 8;
+                    int8_t w2_low = (w2_packed & 0x0F) - 8;
+                    int8_t w2_high = (w2_packed >> 4) - 8;
+                    int8_t w3_low = (w3_packed & 0x0F) - 8;
+                    int8_t w3_high = (w3_packed >> 4) - 8;
 
                     // TODO: int8 multiply and accumulate operation
+                    intermediate_sum0 += a_int8[qj] * w0_low;
+                    intermediate_sum0_2nd += a_int8[qj + 32] * w0_high;
+                    intermediate_sum1 += a_int8[qj] * w1_low;
+                    intermediate_sum1_2nd += a_int8[qj + 32] * w1_high;
+                    intermediate_sum2 += a_int8[qj] * w2_low;
+                    intermediate_sum2_2nd += a_int8[qj + 32] * w2_high;
+                    intermediate_sum3 += a_int8[qj] * w3_low;
+                    intermediate_sum3_2nd += a_int8[qj + 32] * w3_high;
                 }
                 // dequantize the sum into floating point
                 acc0 += (float)intermediate_sum0 * s_a * s_w0;
